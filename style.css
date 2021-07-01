@@ -202,7 +202,7 @@ position:absolute;
       top:-400%;
 }
 
-input[type=number] {
+input[type="number"] {
 width :6rem;
 margin: 0.5rem ;
 }
