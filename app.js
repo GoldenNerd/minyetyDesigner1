@@ -243,7 +243,7 @@ let rd = {
     sketchFileName: "url(spring.jpg)",
     noOfDataPoints: 1,
     ftPresets: [0],
-    inchesPresets: [3.0625],
+    inchesPresets: [3],
     ftView: ["none"],
     domInchesPlaceholders: ["0 inches"],
     labels: ["Inches Inside"],
@@ -261,7 +261,7 @@ let rd = {
     sketchFileName: "url(misc.jpg)",
     noOfDataPoints: 4,
     ftPresets: [0, 0, 0, 0],
-    inchesPresets: [3, 0, 1, 1],
+    inchesPresets: [1, 0, 1, 0],
     ftView: ["none", "none", "none", "none"],
     domInchesPlaceholders: ["none", "none", "none", "none"],
     labels: [
