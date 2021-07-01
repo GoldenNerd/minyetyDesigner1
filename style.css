@@ -48,7 +48,7 @@ height: 99vh;
 color :white ;
 font-size :1.5rem;
 font-weight :bold;
-background-color:  magenta; /*#000 #26246e */
+background-color:  #000; /* #26246e */
 }
 
 #visible-content-frame{
@@ -203,7 +203,7 @@ position:absolute;
 }
 
 input[type="number"] {
-width :6.1rem;
+width :6rem;
 margin: 0.5rem ;
 }
 
