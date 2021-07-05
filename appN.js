@@ -268,13 +268,19 @@ let rd = {
   objNo: 5,
   pageHeader: "Torsion Spring:",
   sketchFileName: "url(spring.jpg)",
-  noOfDataPoints: 1,
-  ftPresets: [0],
-  inchesPresets: [3],
-  ftView: ["none"],
-  domInchesPlaceholders: ["0 inches"],
-  labels: ["Inches Inside"],
-  datumKeys: ["intDia"],
+  noOfDataPoints: 2,
+  ftPresets: [0,
+   0],
+  inchesPresets: [3,
+   1],
+  ftView: ["none",
+   "none"],
+  domInchesPlaceholders: ["0 inches",
+   "Qty 0"],
+  labels: ["Inches Inside",
+   "Amount of Springs"],
+  datumKeys: ["intDia",
+   "amountOfSprings"],
   datumValues: [],
   dataPoints: {},
   prevObjName: "bottomBar",
@@ -1192,7 +1198,7 @@ flatSlatThickness18G: 0.0050,
 
  minimumInternalRollToHoodClearance: 0.75,
 
- endPlatePossibleSizes: [12, 14, 15.5, 16, 18],
+ endPlatePossibleSizes: [12, 14, 15.5, 16, 18, 20, 22],
 };
 // §
 // Establish the client's machine key
@@ -1210,6 +1216,7 @@ const calcDat = {
 
  slatLinearInchWeight: 0,
 
+ lowCarbSteelSpecificWeight: 0,
 
  barrelDiameter: 0,
 
@@ -1228,6 +1235,7 @@ const calcDat = {
  // Evaluation of functions:
  slatAssemblyWidth: 0,
  slatWidth: 0,
+ amountOfSprings: 0,
  oneSlatWeight: 0,
  closedHangingHeight: 0,
  closedHangingSlatCount: 0,
@@ -1237,7 +1245,7 @@ const calcDat = {
  astragalWeight: 0,
  slideboltsWeight: 0,
  bbAssemblyWeight: 0,
-closedWindlocksWeight: 0,
+ closedWindlocksWeight: 0,
  closedHangingWeight: 0,
  lowMomentArm: 0,
  requiredInchPound: 0,
@@ -1659,8 +1667,18 @@ calcDat.exactHGoal=rd.rdOutline.dataPoints.height + constDat.bbBeyondWallCutoutH
  constDat.bbStopDistanceBelowEndPlate;
  console.log('approximateHGoal: ', calcDat.approximateHGoal);
 
+ // low Carb Steel Specific Weight
+ calcDat.lowCarbSteelSpecificWeight =
+ constDat.lowCarbSteelSpecificWeight;
+ console.log('lowCarbSteelSpecificWeight: ', calcDat.lowCarbSteelSpecificWeight);
+
  // SPRING INTERNAL DIAMETER
  calcDat.internalDiameter = rd.spring.dataPoints.intDia;
+
+ // AMOUNT OF SPRINGS
+ calcDat.amountOfSprings = rd.spring.dataPoints.amountOfSprings;
+ console.log('amountOfSprings: ', calcDat.amountOfSprings);
+
  console.log("constDat: ", {
   constDat
  });
@@ -1672,6 +1690,29 @@ calcDat.exactHGoal=rd.rdOutline.dataPoints.height + constDat.bbBeyondWallCutoutH
  });
 }
 /* END OF buildCalcDat() */
+
+// §
+function accountForAmountOfSprings () {
+ if (errorStack.length !== 0) {
+  // on error do nothing
+  return;
+ } else {
+  // Half all weight contributor Items
+  const n = calcDat.amountOfSprings;
+
+  calcDat.slatLinearInchWeight = calcDat.slatLinearInchWeight / n;
+
+  calcDat.oneEndlockWeight = calcDat.oneEndlockWeight / n;
+
+  calcDat.oneWindlockWeight = calcDat.oneWindlockWeight / n;
+
+  calcDat.lowCarbSteelSpecificWeight = calcDat.lowCarbSteelSpecificWeight / n;
+
+  calcDat.oneSlideBoltWeight = calcDat.oneSlideBoltWeight / n;
+
+  calcDat.astragalLinearInchWeight = calcDat.astragalLinearInchWeight / n;
+ }
+}
 
 /* CLOSED ASSEMBLY CALCULATIONS */
 // Slat width
@@ -1718,7 +1759,7 @@ const nthTableRow = {
 };
 
 // Global table row variables
-let stepNum= -1;
+let stepNum = -1;
 let theta;
 let sigma;
 let rO;
@@ -1728,21 +1769,21 @@ let degr;
 let dR;
 let h;
 
-const stepsProgression=[];
+const stepsProgression = [];
 
 function rotate1Increment() {
  if (stepNum === -1) {
-stepNum=0;
-nthTableRow.stepNum = stepNum;
+  stepNum = 0;
+  nthTableRow.stepNum = stepNum;
  } else {
- nthTableRow.stepNum++;
+  nthTableRow.stepNum++;
  }
-stepsProgression.push(nthTableRow.stepNum);
+ stepsProgression.push(nthTableRow.stepNum);
 }
 
 const bbTravelProgress = [];
 
-function buildNthRowOfLukUpTable(angularStep=nthTableRow.stepNum) {
+function buildNthRowOfLukUpTable(angularStep = nthTableRow.stepNum) {
  // Initial values:
  const r0 = calcDat.barrelDiameter / 2;
  const a = calcDat.slatC_value / (2 * Math.PI);
@@ -1783,63 +1824,63 @@ function buildNthRowOfLukUpTable(angularStep=nthTableRow.stepNum) {
 }
 
 function fineTunner(goalValue) {
- 
+
  console.log('fineTunner goal: ', goalValue);
- 
+
  for (let i = 0; i < bbTravelProgress.length; i++) {
-  if (bbTravelProgress[i]>goalValue) {
-   const ithTableRow=stepsProgression[i];
-    // §
+  if (bbTravelProgress[i] > goalValue) {
+   const ithTableRow = stepsProgression[i];
+   // §
    buildNthRowOfLukUpTable(ithTableRow-1);
-console.log('ithTableRow', nthTableRow);
-      // Write out result
+   console.log('ithTableRow', nthTableRow);
+   // Write out result
    calcDat.rO = nthTableRow.rO;
    calcDat.dR = nthTableRow.dR;
-   
-console.log(`💪 Success! Found rO ${
+
+   console.log(`💪 Success! Found rO ${
     Math.round(10000 * calcDat.rO) / 10000} and dR ${Math.round(10000 * calcDat.dR) / 10000} , For hTestValue ${Math.round(10000 * nthTableRow.h) / 10000} iteration ${ithTableRow-1}`);
-  break;
-  }else{
+   break;
+  } else {
    // NOP
   }
  }
 }
 
-const dRProgress=[];
+const dRProgress = [];
 // (@2)
 function calcRoDrForHgoal(bbTravel = calcDat.approximateHGoal) {
 
  console.log('Algorithm bbTravel: ', bbTravel);
 
- while (nthTableRow.stepNum < 601) {
+ while (nthTableRow.stepNum < 1500) {
   // §
   rotate1Increment();
   buildNthRowOfLukUpTable();
   bbTravelProgress.push(nthTableRow.h);
   dRProgress.push(nthTableRow.dR);
-  
+
   const hTestValue = bbTravelProgress[bbTravelProgress.length];
-  
+
   if (nthTableRow.h >= bbTravel) {
 
-      // Write out result
+   // Write out result
    calcDat.rO = nthTableRow.rO;
    calcDat.dR = nthTableRow.dR;
-console.log(`💪 Success! Found rO ${
+   console.log(`💪 Success! Found rO ${
     Math.round(10000 * calcDat.rO) / 10000} and dR ${Math.round(10000 * calcDat.dR) / 10000} , For hTestValue ${Math.round(10000 * nthTableRow.h) / 10000}`);
-break;
-  } 
- }
-if (nthTableRow.stepNum >= 601) {
-   errorStack.push("☹️ Excessive algorithm iterations.");
-   console.log("☹️ Excessive algorithm iterations.");
-  }else{
-   console.log('stepsProgression: ', stepsProgression);
-
-console.log('bbTravelProgress: ', bbTravelProgress);
-
-console.log('dRProgress: ', dRProgress);
+   break;
   }
+ }
+ if (nthTableRow.stepNum >= 1500) {
+  errorStack.push("☹️ Excessive algorithm iterations.");
+  console.log("☹️ Excessive algorithm iterations.");
+ } else {
+  console.log('stepsProgression: ', stepsProgression);
+
+  console.log('bbTravelProgress: ', bbTravelProgress);
+
+  console.log('dRProgress: ', dRProgress);
+ }
 
 }
 
@@ -1851,8 +1892,8 @@ console.log('dRProgress: ', dRProgress);
    break;
   }
   */
-  
- // (@3)
+
+// (@3)
 function exactEndplateSize() {
  const minPlateSize =
  2 * (constDat.minimumInternalRollToHoodClearance + calcDat.rO);
@@ -2047,7 +2088,7 @@ function bbAnglesWeight() {
  const bbAnglesWeight =
  oneAngleVolume *
  rd.bottomBar.dataPoints.bbAnglesAmount *
- constDat.lowCarbSteelSpecificWeight;
+ calcDat.lowCarbSteelSpecificWeight;
 
  calcDat.bbAnglesWeight = bbAnglesWeight;
  console.log("bbAnglesWeight(): ", {
@@ -2096,13 +2137,15 @@ function closedHangingWeight() {
  calcDat.closedWindlocksCount * calcDat.oneWindlockWeight +
  calcDat.bbAssemblyWeight;
 
-const closedWindlocksWeight=calcDat.closedWindlocksCount * calcDat.oneWindlockWeight;
-calcDat.closedWindlocksWeight=closedWindlocksWeight;
-console.log("closedWindlocksWeight: ",
+ const closedWindlocksWeight = calcDat.closedWindlocksCount * calcDat.oneWindlockWeight;
+ calcDat.closedWindlocksWeight = closedWindlocksWeight;
+ console.log("closedWindlocksWeight: ",
   closedWindlocksWeight);
-  
+
  calcDat.closedHangingWeight = hangingWeight;
- console.log("closedHangingWeight(): ", {hangingWeight});
+ console.log("closedHangingWeight(): ", {
+  hangingWeight
+ });
 
  return hangingWeight;
 }
@@ -2408,12 +2451,17 @@ function spoolSpringSpecs () {
   if (calcDat.selectedWireColor === "brown") {
    inchesA.style.color = "#4f0f0f";
    datumA.style.color = "#4f0f0f";
-   datumA.innerHTML = "brown Wire";
+   // datumA.innerHTML = "brown Wire";
+  datumA.innerHTML = `Brown Wire, Qty. ${calcDat.amountOfSprings}`;
+   
   } else {
    inchesA.style.color = calcDat.selectedWireColor;
    datumA.style.color = calcDat.selectedWireColor;
-   datumA.innerHTML = calcDat.selectedWireColor.concat(" Wire Diameter");
+   // datumA.innerHTML = calcDat.selectedWireColor.concat(" Wire Diameter");
+   datumA.innerHTML = calcDat.selectedWireColor.concat(` Wire Diameter, Qty. ${calcDat.amountOfSprings}`);
   }
+ }else{
+datumA.innerHTML =`Wire Diameter, Qty. ${calcDat.amountOfSprings}`;
  }
 
  document.querySelector("#inches-b").textContent = numMolder(
@@ -2555,6 +2603,9 @@ function determineAllSpringSpecs() {
  closedHangingHeight();
 
  slatAssemblyWidth();
+ // Adjust calcDat weight contributors to take into account the amount of springs
+ accountForAmountOfSprings();
+
  slatWidth();
  oneSlatWeight();
 
